@@ -9,78 +9,80 @@
     android:orientation="vertical"
     android:padding="14dp">
 
+    <TextView
+        android:id="@+id/tvPlaylistName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Мой плейлист"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvPlaylistMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:text="M3U • 0 каналов"
+        android:textColor="@color/accent_cyan"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tvPlaylistUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="middle"
+        android:maxLines="1"
+        android:text=""
+        android:textColor="@color/text_muted"
+        android:textSize="11sp" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
-        <LinearLayout
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnPlaylistRefresh"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvPlaylistName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Мой плейлист"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvPlaylistMeta"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="M3U • 0 каналов"
-                android:textColor="@color/accent_cyan"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvPlaylistUrl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="middle"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="@color/text_muted"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btnPlaylistRefresh"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginEnd="6dp"
             android:background="@drawable/bg_focus_button"
-            android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
-            android:text="↻"
-            android:textColor="@color/text_primary" />
+            android:minHeight="38dp"
+            android:paddingVertical="6dp"
+            android:text="↻ Обновить"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPlaylistEdit"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
+            android:layout_weight="1"
             android:background="@drawable/bg_focus_button"
-            android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
-            android:text="⚙"
-            android:textColor="@color/text_primary" />
+            android:minHeight="38dp"
+            android:paddingVertical="6dp"
+            android:text="⚙ Настр."
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPlaylistDelete"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_height="wrap_content"
             android:background="@drawable/bg_focus_button"
-            android:minWidth="0dp"
-            android:paddingHorizontal="10dp"
+            android:minHeight="38dp"
+            android:minWidth="46dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
             android:text="✕"
-            android:textColor="@color/accent_live" />
+            android:textColor="@color/accent_live"
+            android:textSize="14sp" />
     </LinearLayout>
 </LinearLayout>

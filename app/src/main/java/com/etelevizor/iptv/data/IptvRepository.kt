@@ -23,6 +23,7 @@ class IptvRepository(
     private val cacheDir = File(context.filesDir, "playlists_cache").apply { mkdirs() }
     private val localPlaylistsDir = File(context.filesDir, "local_m3u").apply { mkdirs() }
     private val xtreamClient = XtreamApiClient(httpClient)
+    val playlistScanner = FreePlaylistScanner(httpClient)
 
     private val memoryChannels = ConcurrentHashMap<String, List<Channel>>()
     private val epgNowNextCache = ConcurrentHashMap<String, Pair<Long, EpgNowNext>>()
@@ -151,6 +152,32 @@ class IptvRepository(
         )
         saveOrUpdatePlaylistMeta(source)
         refreshPlaylist(source)
+    }
+
+    /**
+     * Installs and loads the built-in self-updating IPTV playlist immediately on first launch
+     * (auto-updates every 12h, falls back to iptv-org Russian open streams if primary fails).
+     */
+    suspend fun installDefaultAutoUpdatingPlaylist(): Result<PlaylistSource> = withContext(Dispatchers.IO) {
+        val primary = PlaylistSource(
+            id = FreePlaylistsCatalog.DEFAULT_AUTO_PLAYLIST_ID,
+            name = FreePlaylistsCatalog.DEFAULT_AUTO_PLAYLIST_NAME,
+            type = PlaylistType.M3U_URL,
+            url = FreePlaylistsCatalog.DEFAULT_AUTO_PLAYLIST_URL,
+            epgUrl = FreePlaylistsCatalog.DEFAULT_AUTO_EPG_URL,
+            autoUpdateHours = 12
+        )
+        saveOrUpdatePlaylistMeta(primary)
+        val firstTry = refreshPlaylist(primary)
+        if (firstTry.isSuccess && (firstTry.getOrNull()?.channelCount ?: 0) > 0) {
+            return@withContext firstTry
+        }
+        val fallback = primary.copy(
+            name = "Автообновляемый ТВ (Русскоязычные)",
+            url = FreePlaylistsCatalog.FALLBACK_AUTO_PLAYLIST_URL
+        )
+        saveOrUpdatePlaylistMeta(fallback)
+        refreshPlaylist(fallback)
     }
 
     suspend fun addDemoPlaylist(): Result<PlaylistSource> = withContext(Dispatchers.IO) {

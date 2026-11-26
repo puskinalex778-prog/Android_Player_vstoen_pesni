@@ -2,12 +2,11 @@ package com.etelevizor.iptv.ui
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.etelevizor.iptv.ETelevizorApp
@@ -313,7 +312,7 @@ class PlaylistsActivity : BaseActivity() {
                     textSize = 12f
                     maxLines = 1
                 })
-                val delBtn = Button(this).apply {
+                val delBtn = AppCompatButton(this).apply {
                     text = "✕"
                     setBackgroundResource(R.drawable.bg_focus_button)
                     setTextColor(getColor(R.color.accent_live))

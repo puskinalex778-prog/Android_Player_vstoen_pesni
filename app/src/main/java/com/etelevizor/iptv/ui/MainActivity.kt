@@ -87,9 +87,28 @@ class MainActivity : BaseActivity() {
 
         handleIncomingM3uIntent(intent)
 
-        // Background auto-update check for playlists & EPG
+        // Auto-install built-in self-updating IPTV playlist on first run + check scheduled auto-updates
         lifecycleScope.launch {
-            app.repository.checkAutoUpdatesIfNeeded()
+            if (prefs.getPlaylists().isEmpty() && !prefs.defaultPlaylistAutoSeeded) {
+                prefs.defaultPlaylistAutoSeeded = true
+                setLoading(true)
+                Toast.makeText(
+                    this@MainActivity,
+                    "Загружаю встроенный самообновляемый IPTV плейлист...",
+                    Toast.LENGTH_SHORT
+                ).show()
+                val res = app.repository.installDefaultAutoUpdatingPlaylist()
+                setLoading(false)
+                res.onSuccess { p ->
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Готово! «${p.name}»: ${p.channelCount + p.vodCount} каналов",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } else {
+                app.repository.checkAutoUpdatesIfNeeded()
+            }
             reloadData()
         }
     }
@@ -162,6 +181,7 @@ class MainActivity : BaseActivity() {
             b.etSearchTv.requestFocus()
         }
         b.navPlaylists.setOnClickListener { openProtectedActivity(PlaylistsActivity::class.java) }
+        b.navFreeSearch.setOnClickListener { openFreePlaylistParser() }
         b.navSettings.setOnClickListener { openProtectedActivity(SettingsActivity::class.java) }
         b.navDeviceMode.setOnClickListener { openDeviceModeSwitcher() }
 
@@ -173,7 +193,7 @@ class MainActivity : BaseActivity() {
 
         // Empty state buttons
         b.btnEmptyAddPlaylist.setOnClickListener { showQuickAddPlaylistMenu() }
-        b.btnEmptyDemo.setOnClickListener { loadDemoPlaylist() }
+        b.btnEmptyDemo.setOnClickListener { openFreePlaylistParser() }
 
         // Search box
         b.etSearchTv.addTextChangedListener(object : TextWatcher {
@@ -255,7 +275,7 @@ class MainActivity : BaseActivity() {
         b.swipeRefreshPhone.setOnRefreshListener { refreshPlaylistsNow() }
 
         b.btnPhoneEmptyAdd.setOnClickListener { showQuickAddPlaylistMenu() }
-        b.btnPhoneEmptyDemo.setOnClickListener { loadDemoPlaylist() }
+        b.btnPhoneEmptyDemo.setOnClickListener { openFreePlaylistParser() }
 
         b.phoneBottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -778,6 +798,26 @@ class MainActivity : BaseActivity() {
                 }
             }
             .show()
+    }
+
+    private fun openFreePlaylistParser() {
+        Dialogs.showFreePlaylistsSearchDialog(this) { preset ->
+            setLoading(true)
+            lifecycleScope.launch {
+                val res = app.repository.addM3uUrlPlaylist(
+                    name = preset.title,
+                    url = preset.url,
+                    epgUrl = preset.recommendedEpgUrl
+                )
+                setLoading(false)
+                res.onSuccess {
+                    Toast.makeText(this@MainActivity, "Подключено «${it.name}»: ${it.channelCount + it.vodCount} каналов", Toast.LENGTH_LONG).show()
+                    reloadData()
+                }.onFailure {
+                    Toast.makeText(this@MainActivity, "Ошибка: ${it.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     private fun loadDemoPlaylist() {

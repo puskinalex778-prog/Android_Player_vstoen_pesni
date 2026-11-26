@@ -20,6 +20,10 @@ class AppPreferences(context: Context) {
         get() = prefs.getBoolean("setup_completed", false)
         set(v) = prefs.edit().putBoolean("setup_completed", v).apply()
 
+    var defaultPlaylistAutoSeeded: Boolean
+        get() = prefs.getBoolean("default_playlist_auto_seeded", false)
+        set(v) = prefs.edit().putBoolean("default_playlist_auto_seeded", v).apply()
+
     var deviceMode: DeviceMode
         get() = DeviceMode.fromKey(prefs.getString("device_mode", DeviceMode.AUTO.key))
         set(v) = prefs.edit().putString("device_mode", v.key).apply()

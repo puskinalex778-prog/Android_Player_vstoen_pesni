@@ -192,7 +192,7 @@
                 <TextView
                     android:id="@+id/navPlaylists"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
                     android:background="@drawable/bg_focus_row"
                     android:clickable="true"
@@ -200,9 +200,29 @@
                     android:drawablePadding="12dp"
                     android:focusable="true"
                     android:gravity="center_vertical"
+                    android:minHeight="44dp"
                     android:paddingHorizontal="12dp"
+                    android:paddingVertical="8dp"
                     android:text="Плейлисты"
                     android:textColor="@color/text_primary"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/navFreeSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/bg_focus_row"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_search"
+                    android:drawablePadding="12dp"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="44dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="8dp"
+                    android:text="Парсер M3U"
+                    android:textColor="@color/accent_emerald"
                     android:textSize="15sp" />
 
                 <TextView
@@ -398,27 +418,31 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnEmptyAddPlaylist"
                     android:layout_width="wrap_content"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:background="@drawable/bg_focus_button"
+                    android:minHeight="48dp"
                     android:paddingHorizontal="24dp"
+                    android:paddingVertical="10dp"
                     android:text="+ Добавить плейлист"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnEmptyDemo"
                     android:layout_width="wrap_content"
-                    android:layout_height="44dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_focus_row"
+                    android:background="@drawable/bg_focus_button"
+                    android:minHeight="44dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Загрузить Демо-плейлист"
+                    android:paddingVertical="10dp"
+                    android:text="🔍 Парсер и поиск бесплатных M3U"
                     android:textAllCaps="false"
-                    android:textColor="@color/accent_cyan" />
+                    android:textColor="@color/accent_emerald" />
             </LinearLayout>
         </FrameLayout>
     </LinearLayout>

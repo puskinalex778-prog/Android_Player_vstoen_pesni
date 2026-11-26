@@ -56,6 +56,31 @@ class SetupWizardActivity : BaseActivity() {
         binding.cardModeTv.setOnClickListener { chooseMode(DeviceMode.TV) }
         binding.cardModePhone.setOnClickListener { chooseMode(DeviceMode.PHONE) }
 
+        binding.btnWizardAutoStart.setOnClickListener {
+            setBusy(true)
+            Toast.makeText(this, "Загрузка самообновляемого IPTV плейлиста...", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                app.prefs.defaultPlaylistAutoSeeded = true
+                val res = app.repository.installDefaultAutoUpdatingPlaylist()
+                setBusy(false)
+                res.onSuccess { p ->
+                    Toast.makeText(
+                        this@SetupWizardActivity,
+                        "Загружен «${p.name}»: ${p.channelCount + p.vodCount} каналов!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finishWizard()
+                }.onFailure { err ->
+                    Toast.makeText(
+                        this@SetupWizardActivity,
+                        "Не удалось загрузить сейчас (${err.localizedMessage}). Попробую при открытии.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finishWizard()
+                }
+            }
+        }
+
         binding.btnWizardAddM3uUrl.setOnClickListener {
             Dialogs.showAddM3uUrlDialog(this) { name, url, epgUrl, ua ->
                 setBusy(true)
@@ -165,7 +190,7 @@ class SetupWizardActivity : BaseActivity() {
         binding.stepModeContainer.visibility = View.GONE
         binding.stepPlaylistContainer.visibility = View.VISIBLE
         binding.tvDetectedHint.text = "Выбран режим: ${DeviceModeHelper.activeModeShortLabel(this, app.prefs)}"
-        binding.btnWizardAddM3uUrl.requestFocus()
+        binding.btnWizardAutoStart.requestFocus()
     }
 
     private fun setBusy(busy: Boolean) {

@@ -11,39 +11,39 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="28dp">
+        android:padding="22dp">
 
         <ImageView
-            android:layout_width="76dp"
-            android:layout_height="76dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:contentDescription="@string/app_name"
             android:src="@drawable/ic_launcher_foreground" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:text="@string/app_name"
             android:textColor="@color/text_primary"
-            android:textSize="30sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvDetectedHint"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
             android:text="Выберите режим интерфейса (можно изменить в меню в любой момент)"
             android:textColor="@color/text_secondary"
-            android:textSize="15sp" />
+            android:textSize="14sp" />
 
         <!-- Step 1: Device Mode Selection -->
         <LinearLayout
             android:id="@+id/stepModeContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="20dp"
             android:gravity="center"
             android:orientation="vertical">
 
@@ -57,37 +57,37 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:src="@drawable/ic_auto"
                     android:tint="@color/accent_cyan" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Автоопределение (Рекомендуется)"
                         android:textColor="@color/text_primary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvAutoSubtitle"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="Программа сама определит телевизор или телефон"
                         android:textColor="@color/accent_cyan"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -101,31 +101,31 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:src="@drawable/ic_tv"
                     android:tint="@color/accent_amber" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Телевизор / Приставка (Пульт ДУ)"
                         android:textColor="@color/text_primary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="Навигация стрелками пульта, крупные панели, EPG справа, набор номера канала 0–9"
@@ -138,37 +138,37 @@
                 android:id="@+id/cardModePhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 android:background="@drawable/bg_focus_card"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:src="@drawable/ic_phone"
                     android:tint="@color/accent_emerald" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Телефон / Планшет (Сенсорный экран)"
                         android:textColor="@color/text_primary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="Удобное управление пальцем, свайпы яркости и громкости, режим Картинка в картинке"
@@ -178,7 +178,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Step 2: Optional Quick Playlist Setup -->
+        <!-- Step 2: Starter Auto-Updating IPTV or Custom Playlist -->
         <LinearLayout
             android:id="@+id/stepPlaylistContainer"
             android:layout_width="match_parent"
@@ -188,76 +188,109 @@
             android:visibility="gone">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="14dp"
-                android:text="Добавьте ваш первый IPTV плейлист"
+                android:gravity="center"
+                android:text="Выберите стартовый IPTV плейлист"
                 android:textColor="@color/text_primary"
-                android:textSize="20sp"
+                android:textSize="19sp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnWizardAddM3uUrl"
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnWizardAutoStart"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:background="@drawable/bg_focus_button"
-                android:text="Добавить M3U / M3U8 по ссылке"
-                android:textAllCaps="false"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp" />
-
-            <Button
-                android:id="@+id/btnWizardAddXtream"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/bg_focus_button"
-                android:text="Подключить Xtream Codes (Логин / Пароль)"
-                android:textAllCaps="false"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp" />
-
-            <Button
-                android:id="@+id/btnWizardAddFile"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/bg_focus_button"
-                android:text="Выбрать локальный файл .m3u / .m3u8"
-                android:textAllCaps="false"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp" />
-
-            <Button
-                android:id="@+id/btnWizardFreeSearch"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/bg_focus_button"
-                android:text="🌐 Поиск бесплатных плейлистов (РФ и Мир)"
+                android:minHeight="52dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:text="▶ Встроенный самообновляемый IPTV (РФ + Мир) — Рекомендуется"
                 android:textAllCaps="false"
                 android:textColor="@color/accent_emerald"
-                android:textSize="15sp" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnWizardDemo"
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnWizardFreeSearch"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginBottom="14dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:background="@drawable/bg_focus_button"
-                android:text="Загрузить Демо-плейлист (для проверки плеера)"
+                android:minHeight="50dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:text="🔍 Парсер и поиск бесплатных M3U / M3U8 (m3u.su, GitHub, РФ и Мир)"
                 android:textAllCaps="false"
                 android:textColor="@color/accent_cyan"
                 android:textSize="15sp" />
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnWizardAddM3uUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="50dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:text="Добавить свой плейлист по ссылке (M3U / M3U8 / XSPF)"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnWizardAddXtream"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="50dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:text="Подключить Xtream Codes (Логин / Пароль)"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnWizardAddFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="50dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:text="Выбрать файл плейлиста из памяти (.m3u / .m3u8)"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnWizardDemo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="48dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="Загрузить Демо-плейлист (HD тест)"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_amber"
+                android:textSize="14sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnWizardSkip"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_focus_row"
-                android:text="Пропустить и перейти к приложению →"
+                android:minHeight="48dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:text="Перейти к каналам →"
                 android:textAllCaps="false"
                 android:textColor="@color/text_secondary"
                 android:textSize="15sp" />

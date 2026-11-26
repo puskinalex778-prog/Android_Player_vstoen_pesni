@@ -6,72 +6,94 @@
     android:background="@color/bg_primary"
     android:orientation="vertical">
 
-    <!-- Top bar -->
+    <!-- Clean 2-Row Header (fits narrow phones and large TV fonts without clipping!) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:background="@color/bg_surface"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp">
 
-        <ImageButton
-            android:id="@+id/btnEpgBack"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:background="@drawable/bg_focus_row"
-            android:contentDescription="Назад"
-            android:padding="8dp"
-            android:src="@drawable/ic_back"
-            android:tint="@color/text_primary" />
-
-        <TextView
-            android:layout_width="0dp"
+        <!-- Row 1: Back + Full-width Title -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:text="Телепрограмма (EPG) и Архив"
-            android:textColor="@color/text_primary"
-            android:textSize="17sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnDayYesterday"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_focus_button"
-            android:minWidth="0dp"
-            android:paddingHorizontal="12dp"
-            android:text="Вчера"
-            android:textAllCaps="false"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp" />
+            <ImageButton
+                android:id="@+id/btnEpgBack"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_focus_row"
+                android:contentDescription="Назад"
+                android:padding="8dp"
+                android:src="@drawable/ic_back"
+                android:tint="@color/text_primary" />
 
-        <Button
-            android:id="@+id/btnDayToday"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_focus_button"
-            android:minWidth="0dp"
-            android:paddingHorizontal="12dp"
-            android:text="Сегодня"
-            android:textAllCaps="false"
-            android:textColor="@color/accent_cyan"
-            android:textSize="13sp" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Телепрограмма (EPG) и Архив"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnDayTomorrow"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_focus_button"
-            android:minWidth="0dp"
-            android:paddingHorizontal="12dp"
-            android:text="Завтра"
-            android:textAllCaps="false"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp" />
+        <!-- Row 2: Full-width Day Selector -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnDayYesterday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="40dp"
+                android:paddingVertical="8dp"
+                android:text="Вчера"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnDayToday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="40dp"
+                android:paddingVertical="8dp"
+                android:text="Сегодня"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_cyan"
+                android:textSize="14sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnDayTomorrow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_focus_button"
+                android:minHeight="40dp"
+                android:paddingVertical="8dp"
+                android:text="Завтра"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Two-Column EPG Body -->
@@ -124,8 +146,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:padding="24dp"
-                android:text="Нет программы на выбранный день.\nНажмите «Обновить EPG» в разделе Плейлисты или Настройки."
+                android:padding="20dp"
+                android:text="Нет программы на выбранный день.\nДобавьте телепрограмму (EPG) в Настройках или Плейлистах."
                 android:textColor="@color/text_secondary"
                 android:visibility="gone" />
         </LinearLayout>

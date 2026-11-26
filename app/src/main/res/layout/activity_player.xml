@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/playerRoot"
@@ -46,7 +46,9 @@
 
         <ProgressBar
             android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
             android:indeterminateTint="@color/accent_cyan" />
 
         <TextView
@@ -329,10 +331,12 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionChannels"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -342,10 +346,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionEpg"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -355,10 +361,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionRewind"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -368,10 +376,12 @@
                         android:textColor="@color/accent_amber"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionPlayPause"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -381,10 +391,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionForward"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -394,10 +406,12 @@
                         android:textColor="@color/accent_amber"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionLiveNow"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_badge_live"
                         android:minWidth="0dp"
@@ -408,10 +422,12 @@
                         android:textSize="13sp"
                         android:visibility="gone" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionFavorite"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -421,10 +437,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionAudio"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -434,10 +452,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionSubtitles"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -447,10 +467,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionAspect"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -460,10 +482,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionEngine"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -473,10 +497,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionSleep"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -486,10 +512,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionPip"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -499,10 +527,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionLock"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
@@ -512,10 +542,12 @@
                         android:textColor="@color/white"
                         android:textSize="13sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnActionSettings"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
                         android:background="@drawable/bg_focus_button"
                         android:minWidth="0dp"
                         android:paddingHorizontal="12dp"
@@ -529,10 +561,12 @@
     </FrameLayout>
 
     <!-- Screen Lock Unlock Button (Phone mode) -->
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnUnlockScreen"
         android:layout_width="wrap_content"
-        android:layout_height="44dp"
+        android:layout_height="wrap_content"
+        android:minHeight="44dp"
+        android:paddingVertical="8dp"
         android:layout_gravity="top|start"
         android:layout_margin="20dp"
         android:background="@drawable/bg_osd_pill"
@@ -615,10 +649,12 @@
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnReturnToLive"
                 android:layout_width="wrap_content"
-                android:layout_height="34dp"
+                android:layout_height="wrap_content"
+                android:minHeight="34dp"
+                android:paddingVertical="4dp"
                 android:layout_marginEnd="6dp"
                 android:background="@drawable/bg_badge_live"
                 android:minWidth="0dp"
@@ -642,11 +678,13 @@
         <!-- Two Televizo-style Tabs: Прямой эфир / Архив -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="wrap_content"
+                        android:minHeight="38dp"
+                        android:paddingVertical="6dp"
             android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnDrawerTabLive"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -658,7 +696,7 @@
                 android:textColor="@color/accent_emerald"
                 android:textSize="13sp" />
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnDrawerTabArchive"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"

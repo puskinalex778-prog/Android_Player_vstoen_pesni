@@ -138,11 +138,12 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGroupsPhone"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
+        android:layout_height="wrap_content"
         android:background="@color/bg_rail"
         android:clipToPadding="false"
+        android:minHeight="46dp"
         android:paddingHorizontal="8dp"
-        android:paddingVertical="4dp" />
+        android:paddingVertical="6dp" />
 
     <!-- Main Content Area with SwipeRefresh -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -190,27 +191,31 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnPhoneEmptyAdd"
                     android:layout_width="wrap_content"
-                    android:layout_height="46dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:background="@drawable/bg_focus_button"
+                    android:minHeight="48dp"
                     android:paddingHorizontal="24dp"
+                    android:paddingVertical="10dp"
                     android:text="+ Добавить плейлист"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnPhoneEmptyDemo"
                     android:layout_width="wrap_content"
-                    android:layout_height="42dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_focus_row"
+                    android:background="@drawable/bg_focus_button"
+                    android:minHeight="46dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Загрузить Демо-плейлист"
+                    android:paddingVertical="10dp"
+                    android:text="🔍 Парсер и поиск бесплатных M3U"
                     android:textAllCaps="false"
-                    android:textColor="@color/accent_cyan" />
+                    android:textColor="@color/accent_emerald" />
             </LinearLayout>
         </FrameLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

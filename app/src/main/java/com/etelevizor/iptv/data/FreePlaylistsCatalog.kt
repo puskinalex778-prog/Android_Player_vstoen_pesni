@@ -20,13 +20,33 @@ data class FreeEpgPreset(
  */
 object FreePlaylistsCatalog {
 
+    const val DEFAULT_AUTO_PLAYLIST_ID = "auto_starter_iptv"
+    const val DEFAULT_AUTO_PLAYLIST_NAME = "Автообновляемый IPTV (РФ + Мир)"
+    const val DEFAULT_AUTO_PLAYLIST_URL = "https://raw.githubusercontent.com/slava-67/TV/IPTV/avto-full.m3u"
+    const val FALLBACK_AUTO_PLAYLIST_URL = "https://iptv-org.github.io/iptv/languages/rus.m3u"
+    const val DEFAULT_AUTO_EPG_URL = "https://iptvx.one/epg/epg_lite.xml.gz"
+
     val playlists: List<FreePlaylistPreset> = listOf(
         FreePlaylistPreset(
-            title = "🇷🇺 Россия — открытые ТВ каналы (РФ)",
+            title = "⭐ Автообновляемый Full IPTV (slava-67 • РФ + Кино + СНГ)",
+            subtitle = "Самообновляемый плейлист с ТВ, кинозалами и встроенным EPG",
+            region = "Россия / РФ / Русский / Автообновляемый / Кино / СНГ",
+            url = "https://raw.githubusercontent.com/slava-67/TV/IPTV/avto-full.m3u",
+            recommendedEpgUrl = "https://iptvx.one/epg/epg_lite.xml.gz"
+        ),
+        FreePlaylistPreset(
+            title = "📺 TvoeTV HD (источник m3u.su)",
+            subtitle = "Открытый самообновляемый HD-плейлист (m3u.su)",
+            region = "Россия / РФ / HD / m3u.su",
+            url = "https://tvoetv.space/TVOE_TV_HD.m3u8",
+            recommendedEpgUrl = "https://iptvx.one/epg/epg_lite.xml.gz"
+        ),
+        FreePlaylistPreset(
+            title = "🇷🇺 Россия — открытые ТВ каналы (iptv-org)",
             subtitle = "Бесплатные открытые российские каналы (iptv-org)",
             region = "Россия / РФ / Русский",
             url = "https://iptv-org.github.io/iptv/countries/ru.m3u",
-            recommendedEpgUrl = "https://iptvx.one/epg/epg.xml.gz"
+            recommendedEpgUrl = "https://iptvx.one/epg/epg_lite.xml.gz"
         ),
         FreePlaylistPreset(
             title = "🇷🇺 Все русскоязычные каналы (РФ + СНГ + Мир)",
