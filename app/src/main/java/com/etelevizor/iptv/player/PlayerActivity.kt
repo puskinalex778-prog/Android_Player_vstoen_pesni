@@ -28,6 +28,7 @@ import com.etelevizor.iptv.R
 import com.etelevizor.iptv.data.CatchupUrlBuilder
 import com.etelevizor.iptv.databinding.ActivityPlayerBinding
 import com.etelevizor.iptv.model.*
+import com.etelevizor.iptv.ui.BaseActivity
 import com.etelevizor.iptv.ui.ChannelAdapter
 import com.etelevizor.iptv.ui.Dialogs
 import com.etelevizor.iptv.ui.EpgProgramAdapter
@@ -35,10 +36,11 @@ import com.etelevizor.iptv.ui.SettingsActivity
 import com.etelevizor.iptv.util.DeviceModeHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import kotlin.math.roundToInt
 
-class PlayerActivity : AppCompatActivity(), DualPlayerListener {
+class PlayerActivity : BaseActivity(), DualPlayerListener {
+
+    override val isPlayerTheme: Boolean = true
 
     companion object {
         // Shared in-memory channel list to avoid Android Binder 1MB TransactionTooLargeException on 10,000+ IPTV channels!
@@ -120,6 +122,9 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
     private var currentIndex: Int = 0
     private var isArchiveMode: Boolean = false
     private var archiveTitle: String = ""
+    private var timeshiftAnchorEpochSec: Long = 0L
+    private var epgDrawerArchiveTab: Boolean = false
+    private var cachedDrawerPrograms: List<EpgProgram> = emptyList()
 
     private var isOsdVisible = true
     private var isScreenLocked = false
@@ -259,9 +264,8 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
 
             override fun onDoubleTapLeft() {
                 if (isScreenLocked) return
-                if (engine.isSeekable() && !prefs.doubleTapChannelSwitch) {
-                    engine.seekBy(-10_000L)
-                    showGesturePill("⏪ -10 сек")
+                if (!prefs.doubleTapChannelSwitch || isArchiveMode || currentChannel().contentType != ContentType.LIVE) {
+                    performSmartSeek(-prefs.seekStepSeconds)
                 } else {
                     switchChannelBy(-1)
                 }
@@ -275,9 +279,8 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
 
             override fun onDoubleTapRight() {
                 if (isScreenLocked) return
-                if (engine.isSeekable() && !prefs.doubleTapChannelSwitch) {
-                    engine.seekBy(10_000L)
-                    showGesturePill("⏩ +10 сек")
+                if (!prefs.doubleTapChannelSwitch || isArchiveMode || currentChannel().contentType != ContentType.LIVE) {
+                    performSmartSeek(+prefs.seekStepSeconds)
                 } else {
                     switchChannelBy(+1)
                 }
@@ -339,10 +342,33 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
         binding.btnPlayerBack.setOnClickListener { finish() }
         binding.btnActionChannels.setOnClickListener { openChannelsDrawer() }
         binding.btnActionEpg.setOnClickListener { openEpgDrawer() }
+        val step = prefs.seekStepSeconds
+        binding.btnActionRewind.text = "⏪ -${step}с"
+        binding.btnActionForward.text = "⏩ +${step}с"
+        binding.btnActionRewind.setOnClickListener {
+            performSmartSeek(-prefs.seekStepSeconds)
+            scheduleHideOsd()
+        }
+        binding.btnActionForward.setOnClickListener {
+            performSmartSeek(+prefs.seekStepSeconds)
+            scheduleHideOsd()
+        }
+        binding.btnActionLiveNow.setOnClickListener {
+            playChannelAt(currentIndex, null)
+            showGesturePill("● Прямой эфир")
+        }
         binding.btnActionPlayPause.setOnClickListener {
             val playing = engine.togglePlayPause()
             binding.btnActionPlayPause.text = if (playing) "Пауза" else "Играть"
             scheduleHideOsd()
+        }
+        binding.btnDrawerTabLive.setOnClickListener {
+            epgDrawerArchiveTab = false
+            renderEpgDrawerTab()
+        }
+        binding.btnDrawerTabArchive.setOnClickListener {
+            epgDrawerArchiveTab = true
+            renderEpgDrawerTab()
         }
         binding.btnActionFavorite.setOnClickListener {
             val ch = currentChannel()
@@ -527,11 +553,12 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
         when {
             isArchiveMode -> {
                 binding.tvPlayerBadge.text = "↺ АРХИВ"
-                binding.tvPlayerBadge.setBackgroundResource(R.drawable.bg_badge_archive)
+                binding.tvPlayerBadge.setBackgroundResource(R.drawable.bg_badge_orange)
                 binding.tvPlayerProgramNow.text = archiveTitle
-                binding.tvPlayerProgramNext.text = "Архивная запись • Нажмите «EPG / Архив» для возврата в эфир"
+                binding.tvPlayerProgramNext.text = "Архив / Таймшифт • Влево/Вправо: ±${prefs.seekStepSeconds}с • Кнопка «● В эфир» вернёт прямой эфир"
                 binding.pbLiveEpg.visibility = View.GONE
                 binding.vodSeekContainer.visibility = View.VISIBLE
+                binding.btnActionLiveNow.visibility = View.VISIBLE
             }
             ch.contentType != ContentType.LIVE -> {
                 binding.tvPlayerBadge.text = "🎬 VOD"
@@ -540,11 +567,13 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
                 binding.tvPlayerProgramNext.text = ch.plot.take(120)
                 binding.pbLiveEpg.visibility = View.GONE
                 binding.vodSeekContainer.visibility = View.VISIBLE
+                binding.btnActionLiveNow.visibility = View.GONE
             }
             else -> {
                 binding.tvPlayerBadge.text = "● В ЭФИРЕ"
-                binding.tvPlayerBadge.setBackgroundResource(R.drawable.bg_badge_live)
+                binding.tvPlayerBadge.setBackgroundResource(R.drawable.bg_badge_green)
                 binding.vodSeekContainer.visibility = View.GONE
+                binding.btnActionLiveNow.visibility = View.GONE
                 updateLiveEpgInfo(ch)
             }
         }
@@ -646,6 +675,59 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
         }
     }
 
+    // ==================== SMART SEEK (ARCHIVE / VOD / LIVE TIMESHIFT) ====================
+    private fun performSmartSeek(deltaSec: Int) {
+        val ch = currentChannel()
+        val deltaMs = deltaSec * 1000L
+        val sign = if (deltaSec >= 0) "+" else ""
+
+        // 1. Direct seek inside VOD, Archive, or seekable Live DVR buffer
+        if (engine.isSeekable()) {
+            engine.seekBy(deltaMs)
+            val pos = DeviceModeHelper.formatDuration(engine.getCurrentPositionMs())
+            val dur = DeviceModeHelper.formatDuration(engine.getDurationMs())
+            val icon = if (deltaSec < 0) "⏪" else "⏩"
+            showGesturePill("$icon ${sign}${deltaSec}с  ($pos / $dur)")
+            return
+        }
+
+        // 2. Live channel with Archive / Catch-up -> seamless Timeshift jump!
+        if (ch.contentType == ContentType.LIVE && app.repository.channelHasArchive(ch)) {
+            val nowSec = System.currentTimeMillis() / 1000L
+            val baseSec = if (isArchiveMode && timeshiftAnchorEpochSec > 0L) {
+                timeshiftAnchorEpochSec + (engine.getCurrentPositionMs() / 1000L)
+            } else {
+                nowSec
+            }
+            val targetSec = (baseSec + deltaSec).coerceAtMost(nowSec)
+            if (targetSec >= nowSec - 5L) {
+                timeshiftAnchorEpochSec = 0L
+                playChannelAt(currentIndex, null)
+                showGesturePill("● Прямой эфир")
+                return
+            }
+            val pl = app.repository.getPlaylistById(ch.playlistId)
+            val tsUrl = CatchupUrlBuilder.buildTimeshiftUrl(ch, targetSec, pl, prefs.globalCatchupType)
+            timeshiftAnchorEpochSec = targetSec
+            val timeStr = DeviceModeHelper.formatTime(targetSec * 1000L)
+            playArchiveStream(ch, tsUrl, "Таймшифт с $timeStr (${ch.name})")
+            val icon = if (deltaSec < 0) "⏪" else "⏩"
+            showGesturePill("$icon Таймшифт: $timeStr")
+            return
+        }
+
+        // 3. Not seekable and no archive
+        if (deltaSec < 0) {
+            Toast.makeText(
+                this,
+                "Прямой эфир без архива. Для перемотки включите архив в настройках плейлиста или EPG.",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            showGesturePill("● Уже в прямом эфире")
+        }
+    }
+
     private fun openEpgDrawer() {
         closeDrawers()
         setOsdVisible(false)
@@ -655,47 +737,77 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
         binding.btnReturnToLive.visibility = if (isArchiveMode) View.VISIBLE else View.GONE
 
         val now = System.currentTimeMillis()
-        val pastDays = ch.catchupDays.coerceAtLeast(1)
+        val pastDays = app.repository.effectiveArchiveDays(ch).coerceAtLeast(1)
         val fromMs = now - pastDays * 24L * 3600_000L
         val toMs = now + 24L * 3600_000L
 
         lifecycleScope.launch {
-            val programs = app.repository.getScheduleForChannel(ch, fromMs, toMs)
-            binding.tvDrawerEpgEmpty.visibility = if (programs.isEmpty()) View.VISIBLE else View.GONE
-            val epgAdapter = EpgProgramAdapter(hasArchive = ch.hasCatchup()) { prog ->
-                val t = System.currentTimeMillis()
-                when {
-                    prog.isLive(t) -> {
-                        closeDrawers()
-                        playChannelAt(currentIndex, null)
-                    }
-                    prog.isPast(t) && ch.hasCatchup() -> {
-                        val pl = app.repository.getPlaylistById(ch.playlistId)
-                        val url = CatchupUrlBuilder.buildCatchupUrl(ch, prog, pl)
-                        closeDrawers()
-                        playArchiveStream(ch, url, prog.title)
-                    }
-                    prog.isPast(t) -> {
-                        Toast.makeText(this@PlayerActivity, "Архив недоступен для этого канала", Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        Toast.makeText(
-                            this@PlayerActivity,
-                            "Начало в ${DeviceModeHelper.formatTime(prog.startTimeMs)}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+            cachedDrawerPrograms = app.repository.getScheduleForChannel(ch, fromMs, toMs)
+            epgDrawerArchiveTab = isArchiveMode
+            renderEpgDrawerTab()
+        }
+    }
+
+    private fun renderEpgDrawerTab() {
+        val ch = currentChannel()
+        val now = System.currentTimeMillis()
+        val hasArchive = app.repository.channelHasArchive(ch)
+
+        binding.btnDrawerTabLive.isSelected = !epgDrawerArchiveTab
+        binding.btnDrawerTabArchive.isSelected = epgDrawerArchiveTab
+
+        val filtered = if (epgDrawerArchiveTab) {
+            cachedDrawerPrograms.filter { it.isPast(now) || it.isLive(now) }.reversed()
+        } else {
+            cachedDrawerPrograms.filter { it.isLive(now) || it.isFuture(now) }
+        }
+
+        binding.tvDrawerEpgEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        if (filtered.isEmpty()) {
+            binding.tvDrawerEpgEmpty.text = if (epgDrawerArchiveTab) {
+                "Нет архивных передач.\nПроверьте, что для канала загружена телепрограмма (EPG) и провайдер поддерживает архив."
+            } else {
+                "Телепрограмма для этого канала не загружена.\nДобавьте EPG (XMLTV) в Настройках → Телепрограмма (EPG)."
+            }
+        }
+
+        val epgAdapter = EpgProgramAdapter(hasArchive = hasArchive) { prog ->
+            val t = System.currentTimeMillis()
+            when {
+                prog.isLive(t) && !epgDrawerArchiveTab -> {
+                    closeDrawers()
+                    playChannelAt(currentIndex, null)
+                }
+                (prog.isPast(t) || (prog.isLive(t) && epgDrawerArchiveTab)) && hasArchive -> {
+                    val pl = app.repository.getPlaylistById(ch.playlistId)
+                    val url = CatchupUrlBuilder.buildCatchupUrl(ch, prog, pl, prefs.globalCatchupType)
+                    timeshiftAnchorEpochSec = prog.startTimeMs / 1000L
+                    closeDrawers()
+                    playArchiveStream(ch, url, prog.title)
+                }
+                prog.isPast(t) -> {
+                    Toast.makeText(
+                        this@PlayerActivity,
+                        "Архив не указан для канала (можно включить в Настройки → EPG → Тип архива)",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                else -> {
+                    Toast.makeText(
+                        this@PlayerActivity,
+                        "Начало в ${DeviceModeHelper.formatTime(prog.startTimeMs)}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-            binding.rvDrawerEpg.adapter = epgAdapter
-            epgAdapter.submitList(programs)
-            val liveIdx = programs.indexOfFirst { it.isLive(now) }.coerceAtLeast(0)
-            if (programs.isNotEmpty()) {
-                binding.rvDrawerEpg.scrollToPosition(liveIdx)
-                binding.rvDrawerEpg.post {
-                    binding.rvDrawerEpg.findViewHolderForAdapterPosition(liveIdx)?.itemView?.requestFocus()
-                        ?: binding.rvDrawerEpg.requestFocus()
-                }
+        }
+        binding.rvDrawerEpg.adapter = epgAdapter
+        epgAdapter.submitList(filtered)
+        if (filtered.isNotEmpty()) {
+            binding.rvDrawerEpg.scrollToPosition(0)
+            binding.rvDrawerEpg.post {
+                binding.rvDrawerEpg.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
+                    ?: binding.rvDrawerEpg.requestFocus()
             }
         }
     }
@@ -766,17 +878,11 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_REWIND -> {
-                if (engine.isSeekable()) {
-                    engine.seekBy(-15_000L)
-                    showGesturePill("⏪ -15 сек")
-                }
+                performSmartSeek(-prefs.seekStepSeconds)
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
-                if (engine.isSeekable()) {
-                    engine.seekBy(15_000L)
-                    showGesturePill("⏩ +15 сек")
-                }
+                performSmartSeek(+prefs.seekStepSeconds)
                 return true
             }
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
@@ -807,39 +913,47 @@ class PlayerActivity : AppCompatActivity(), DualPlayerListener {
         }
 
         // OSD is hidden -> apply customizable TV remote shortcuts!
+        val isSeekableContent = isArchiveMode || currentChannel().contentType != ContentType.LIVE
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
                 when (prefs.remoteUpDownAction) {
                     "list" -> openChannelsDrawer()
                     "volume" -> adjustSystemVolume(+1)
+                    "televizo" -> setOsdVisible(true)
                     else -> switchChannelBy(+1)
                 }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 when (prefs.remoteUpDownAction) {
-                    "list" -> openChannelsDrawer()
+                    "list", "televizo" -> openChannelsDrawer()
                     "volume" -> adjustSystemVolume(-1)
                     else -> switchChannelBy(-1)
                 }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (isSeekableContent) {
+                    performSmartSeek(-prefs.seekStepSeconds)
+                    return true
+                }
                 when (prefs.remoteLeftAction) {
-                    "seek_back" -> if (engine.isSeekable()) {
-                        engine.seekBy(-15_000L); showGesturePill("⏪ -15 сек")
-                    } else openChannelsDrawer()
+                    "seek_back" -> performSmartSeek(-prefs.seekStepSeconds)
                     "prev_channel" -> switchToPreviousChannel()
+                    "channel_prev" -> switchChannelBy(-1)
                     else -> openChannelsDrawer()
                 }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (isSeekableContent) {
+                    performSmartSeek(+prefs.seekStepSeconds)
+                    return true
+                }
                 when (prefs.remoteRightAction) {
-                    "seek_forward" -> if (engine.isSeekable()) {
-                        engine.seekBy(15_000L); showGesturePill("⏩ +15 сек")
-                    } else openEpgDrawer()
+                    "seek_forward" -> performSmartSeek(+prefs.seekStepSeconds)
                     "info" -> setOsdVisible(true)
+                    "channel_next" -> switchChannelBy(+1)
                     else -> openEpgDrawer()
                 }
                 return true

@@ -1,14 +1,22 @@
 package com.etelevizor.iptv.ui
 
+import android.content.ClipboardManager
 import android.content.Context
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import com.etelevizor.iptv.R
 import com.etelevizor.iptv.data.AppPreferences
+import com.etelevizor.iptv.data.FreeEpgPreset
+import com.etelevizor.iptv.data.FreePlaylistPreset
+import com.etelevizor.iptv.data.FreePlaylistsCatalog
 import com.etelevizor.iptv.model.DeviceMode
 import com.etelevizor.iptv.model.PlaylistSource
 import com.etelevizor.iptv.model.PlaylistType
@@ -55,12 +63,26 @@ object Dialogs {
     ) {
         val container = createFormContainer(context)
         val etName = addField(context, container, "Название плейлиста", "Мой IPTV плейлист")
-        val etUrl = addField(context, container, "Ссылка M3U / M3U8 *", "http://.../playlist.m3u8")
-        val etEpg = addField(context, container, "Ссылка EPG / XMLTV (необязательно)", "http://.../epg.xml.gz")
+        val etUrl = addField(context, container, "Ссылка M3U / M3U8 / XSPF / PLS / TXT *", "")
+        etUrl.hint = "http://.../playlist.m3u8"
+        val btnPaste = Button(context).apply {
+            text = "📋 Вставить ссылку из буфера обмена"
+            isAllCaps = false
+            setBackgroundResource(R.drawable.bg_focus_button)
+            setTextColor(context.getColor(R.color.accent_cyan))
+            setOnClickListener {
+                val clip = readClipboardText(context)
+                if (clip.isNotBlank()) etUrl.setText(clip)
+                else Toast.makeText(context, "Буфер обмена пуст", Toast.LENGTH_SHORT).show()
+            }
+        }
+        container.addView(btnPaste)
+        val etEpg = addField(context, container, "Ссылка EPG / XMLTV (необязательно)", "")
+        etEpg.hint = "http://.../epg.xml.gz"
         val etUa = addField(context, container, "User-Agent (необязательно)", "")
 
         MaterialAlertDialogBuilder(context)
-            .setTitle("Добавить M3U по ссылке")
+            .setTitle("Добавить плейлист по ссылке")
             .setView(wrapScroll(context, container))
             .setPositiveButton("Загрузить") { _, _ ->
                 val url = etUrl.text.toString().trim()
@@ -77,6 +99,124 @@ object Dialogs {
             }
             .setNegativeButton("Отмена", null)
             .show()
+    }
+
+    fun showFreePlaylistsSearchDialog(
+        context: Context,
+        onSelectPreset: (FreePlaylistPreset) -> Unit
+    ) {
+        val root = createFormContainer(context)
+        val etQuery = EditText(context).apply {
+            hint = "Поиск: Россия, русский, кино, спорт, США, Германия..."
+            setSingleLine(true)
+        }
+        root.addView(etQuery)
+
+        val listContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 12, 0, 8)
+        }
+        val scroll = ScrollView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (360 * context.resources.displayMetrics.density).toInt()
+            )
+            addView(listContainer)
+        }
+        root.addView(scroll)
+
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setTitle("🌐 Бесплатные плейлисты (РФ и Мир)")
+            .setView(root)
+            .setNegativeButton("Закрыть", null)
+            .create()
+
+        fun renderPresets(query: String) {
+            listContainer.removeAllViews()
+            val matches = FreePlaylistsCatalog.search(query)
+            if (matches.isEmpty()) {
+                listContainer.addView(TextView(context).apply {
+                    text = "Ничего не найдено. Попробуйте: Россия, Мир, Кино, Музыка, Спорт, США."
+                    setPadding(8, 16, 8, 16)
+                })
+                return
+            }
+            for (preset in matches) {
+                val card = LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setBackgroundResource(R.drawable.bg_focus_card)
+                    isFocusable = true
+                    isClickable = true
+                    setPadding(24, 18, 24, 18)
+                    val lp = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    lp.bottomMargin = 10
+                    layoutParams = lp
+                    setOnClickListener {
+                        dialog.dismiss()
+                        onSelectPreset(preset)
+                    }
+                }
+                card.addView(TextView(context).apply {
+                    text = preset.title
+                    textSize = 15f
+                    setTextColor(context.getColor(R.color.text_primary))
+                })
+                card.addView(TextView(context).apply {
+                    text = preset.subtitle
+                    textSize = 12f
+                    setTextColor(context.getColor(R.color.text_secondary))
+                })
+                listContainer.addView(card)
+            }
+        }
+
+        renderPresets("")
+        etQuery.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                renderPresets(s?.toString().orEmpty())
+            }
+            override fun afterTextChanged(s: Editable?) = Unit
+        })
+
+        dialog.show()
+    }
+
+    fun showEpgPresetsOrCustomDialog(
+        context: Context,
+        onAddUrl: (name: String, url: String) -> Unit,
+        onPickLocalFile: () -> Unit
+    ) {
+        val options = mutableListOf<String>()
+        options.add("➕ Ввести свою ссылку EPG (XML / .xml.gz)")
+        options.add("📂 Загрузить файл телепрограммы из памяти (.xml / .xml.gz)")
+        FreePlaylistsCatalog.epgPresets.forEach { preset ->
+            options.add("🌐 ${preset.title}")
+        }
+
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Добавить телепрограмму (EPG)")
+            .setItems(options.toTypedArray()) { _, which ->
+                when (which) {
+                    0 -> showAddEpgSourceDialog(context, onAddUrl)
+                    1 -> onPickLocalFile()
+                    else -> {
+                        val preset: FreeEpgPreset = FreePlaylistsCatalog.epgPresets[which - 2]
+                        onAddUrl(preset.title, preset.url)
+                    }
+                }
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun readClipboardText(context: Context): String {
+        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+        val item = cm?.primaryClip?.getItemAt(0)
+        return item?.coerceToText(context)?.toString()?.trim().orEmpty()
     }
 
     fun showAddXtreamDialog(
@@ -176,7 +316,20 @@ object Dialogs {
     ) {
         val container = createFormContainer(context)
         val etName = addField(context, container, "Название источника EPG", "Телепрограмма XMLTV")
-        val etUrl = addField(context, container, "Ссылка на .xml или .xml.gz *", "http://.../epg.xml.gz")
+        val etUrl = addField(context, container, "Ссылка на .xml или .xml.gz *", "")
+        etUrl.hint = "https://iptvx.one/epg/epg_lite.xml.gz"
+        val btnPaste = Button(context).apply {
+            text = "📋 Вставить ссылку из буфера обмена"
+            isAllCaps = false
+            setBackgroundResource(R.drawable.bg_focus_button)
+            setTextColor(context.getColor(R.color.accent_cyan))
+            setOnClickListener {
+                val clip = readClipboardText(context)
+                if (clip.isNotBlank()) etUrl.setText(clip)
+                else Toast.makeText(context, "Буфер обмена пуст", Toast.LENGTH_SHORT).show()
+            }
+        }
+        container.addView(btnPaste)
 
         MaterialAlertDialogBuilder(context)
             .setTitle("Добавить источник EPG")

@@ -19,7 +19,7 @@ import com.etelevizor.iptv.util.DeviceModeHelper
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
-class EpgActivity : AppCompatActivity() {
+class EpgActivity : BaseActivity() {
 
     private lateinit var binding: ActivityEpgBinding
     private val app get() = ETelevizorApp.instance
@@ -78,7 +78,8 @@ class EpgActivity : AppCompatActivity() {
         if (selectedChannel?.id == channel.id) return
         selectedChannel = channel
         channelAdapter.submitList(channels, channel.id)
-        val archiveInfo = if (channel.hasCatchup()) " • Архив ${channel.catchupDays} дн." else ""
+        val archiveDays = app.repository.effectiveArchiveDays(channel)
+        val archiveInfo = if (archiveDays > 0) " • Архив $archiveDays дн." else ""
         binding.tvEpgSelectedChannel.text = "${channel.number}. ${channel.name}$archiveInfo"
         loadPrograms(channel)
     }
@@ -97,7 +98,7 @@ class EpgActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val programs = app.repository.getScheduleForChannel(channel, fromMs, toMs)
             binding.tvEpgEmptyPrograms.visibility = if (programs.isEmpty()) View.VISIBLE else View.GONE
-            val progAdapter = EpgProgramAdapter(hasArchive = channel.hasCatchup()) { prog ->
+            val progAdapter = EpgProgramAdapter(hasArchive = app.repository.channelHasArchive(channel)) { prog ->
                 onProgramClick(channel, prog)
             }
             binding.rvEpgPrograms.adapter = progAdapter
@@ -117,9 +118,9 @@ class EpgActivity : AppCompatActivity() {
         when {
             prog.isLive(now) -> launchLive(channel)
             prog.isPast(now) -> {
-                if (channel.hasCatchup()) {
+                if (app.repository.channelHasArchive(channel)) {
                     val playlist = app.repository.getPlaylistById(channel.playlistId)
-                    val archiveUrl = CatchupUrlBuilder.buildCatchupUrl(channel, prog, playlist)
+                    val archiveUrl = CatchupUrlBuilder.buildCatchupUrl(channel, prog, playlist, app.prefs.globalCatchupType)
                     startActivity(
                         PlayerActivity.createArchiveIntent(
                             context = this,
@@ -129,7 +130,11 @@ class EpgActivity : AppCompatActivity() {
                         )
                     )
                 } else {
-                    Toast.makeText(this, "Архив не поддерживается на этом канале", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Архив не настроен (можно включить в Настройки → Телепрограмма EPG → Тип архива)",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
             else -> {

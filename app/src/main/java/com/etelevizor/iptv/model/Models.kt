@@ -84,6 +84,17 @@ enum class AccentColor(val key: String, val label: String, val colorInt: Int) {
     }
 }
 
+enum class FontStyle(val key: String, val label: String) {
+    CLEAR_BOLD("clear_bold", "Чёткий ТВ-шрифт (Жирный, хорошо читаемый)"),
+    STANDARD("standard", "Стандартный (Sans-serif)"),
+    CONDENSED("condensed", "Компактный чёткий (Condensed)"),
+    MONOSPACE("monospace", "Моноширинный (Крупные символы)");
+
+    companion object {
+        fun fromKey(key: String?): FontStyle = entries.firstOrNull { it.key == key } ?: CLEAR_BOLD
+    }
+}
+
 enum class AspectRatioMode(val key: String, val label: String) {
     FIT("fit", "Вписать (авто)"),
     FILL("fill", "Заполнить экран"),

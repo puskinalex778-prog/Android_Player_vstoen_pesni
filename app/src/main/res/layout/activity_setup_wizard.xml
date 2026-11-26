@@ -231,6 +231,17 @@
                 android:textSize="16sp" />
 
             <Button
+                android:id="@+id/btnWizardFreeSearch"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_focus_button"
+                android:text="🌐 Поиск бесплатных плейлистов (РФ и Мир)"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_emerald"
+                android:textSize="15sp" />
+
+            <Button
                 android:id="@+id/btnWizardDemo"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"

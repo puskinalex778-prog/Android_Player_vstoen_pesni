@@ -28,7 +28,7 @@ import com.etelevizor.iptv.util.DeviceModeHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private val app get() = ETelevizorApp.instance
     private val prefs get() = app.prefs
@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
     private var tvBinding: ActivityMainTvBinding? = null
     private var phoneBinding: ActivityMainPhoneBinding? = null
     private var isTvUi: Boolean = false
+    private var appliedFontScale: Float = 1.0f
+    private var appliedFontStyle: FontStyle = FontStyle.CLEAR_BOLD
 
     private var allChannels: List<Channel> = emptyList()
     private var filteredChannels: List<Channel> = emptyList()
@@ -73,6 +75,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         isTvUi = DeviceModeHelper.isTvMode(this, prefs)
+        appliedFontScale = prefs.fontScale
+        appliedFontStyle = prefs.fontStyle
         DeviceModeHelper.applyOrientation(this, prefs, isPlayer = false)
 
         if (isTvUi) {
@@ -97,9 +101,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // If user switched TV / Phone mode in Settings, immediately recreate into the new layout!
+        // If user switched TV / Phone mode, Font Size, or Font Style in Settings, recreate immediately!
         val shouldBeTv = DeviceModeHelper.isTvMode(this, prefs)
-        if (shouldBeTv != isTvUi) {
+        if (shouldBeTv != isTvUi ||
+            prefs.fontScale != appliedFontScale ||
+            prefs.fontStyle != appliedFontStyle
+        ) {
             recreate()
             return
         }
@@ -380,7 +387,9 @@ class MainActivity : AppCompatActivity() {
             groupCounts[ch.group] = (groupCounts[ch.group] ?: 0) + 1
         }
         val groupEntries = mutableListOf<GroupEntry>()
-        groupEntries.add(GroupEntry("Все", sectionPool.size))
+        if (prefs.showAllChannelsGroup || groupCounts.isEmpty()) {
+            groupEntries.add(GroupEntry("Все", sectionPool.size))
+        }
         for ((grp, cnt) in groupCounts) {
             groupEntries.add(
                 GroupEntry(
@@ -392,7 +401,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         if (groupEntries.none { it.name == selectedGroup }) {
-            selectedGroup = "Все"
+            selectedGroup = groupEntries.firstOrNull()?.name ?: "Все"
         }
         groupAdapter.submitList(groupEntries, selectedGroup)
 
@@ -711,9 +720,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showQuickAddPlaylistMenu() {
         val items = arrayOf(
-            "Добавить M3U / M3U8 по ссылке",
+            "Добавить по ссылке (M3U / M3U8 / XSPF / PLS / TXT)",
+            "Выбрать файл из памяти устройства",
             "Подключить Xtream Codes API",
-            "Выбрать локальный файл .m3u / .m3u8",
+            "🌐 Поиск бесплатных плейлистов (РФ и Мир)",
             "Загрузить Демо-плейлист"
         )
         MaterialAlertDialogBuilder(this)
@@ -733,7 +743,8 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    1 -> Dialogs.showAddXtreamDialog(this) { name, server, user, pass ->
+                    1 -> m3uFilePicker.launch(arrayOf("*/*"))
+                    2 -> Dialogs.showAddXtreamDialog(this) { name, server, user, pass ->
                         setLoading(true)
                         lifecycleScope.launch {
                             val res = app.repository.addXtreamPlaylist(name, server, user, pass)
@@ -746,8 +757,24 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    2 -> m3uFilePicker.launch(arrayOf("*/*"))
-                    3 -> loadDemoPlaylist()
+                    3 -> Dialogs.showFreePlaylistsSearchDialog(this) { preset ->
+                        setLoading(true)
+                        lifecycleScope.launch {
+                            val res = app.repository.addM3uUrlPlaylist(
+                                name = preset.title,
+                                url = preset.url,
+                                epgUrl = preset.recommendedEpgUrl
+                            )
+                            setLoading(false)
+                            res.onSuccess {
+                                Toast.makeText(this@MainActivity, "Загружено «${it.name}»: ${it.channelCount} каналов", Toast.LENGTH_LONG).show()
+                                reloadData()
+                            }.onFailure {
+                                Toast.makeText(this@MainActivity, "Ошибка: ${it.localizedMessage}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                    4 -> loadDemoPlaylist()
                 }
             }
             .show()

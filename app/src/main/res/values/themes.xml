@@ -11,6 +11,24 @@
         <item name="android:statusBarColor">@color/bg_primary</item>
         <item name="android:navigationBarColor">@color/bg_primary</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.ETelevizor.Dialog</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Theme.ETelevizor.FontClearBold" parent="Theme.ETelevizor">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Theme.ETelevizor.FontStandard" parent="Theme.ETelevizor">
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Theme.ETelevizor.FontCondensed" parent="Theme.ETelevizor">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="Theme.ETelevizor.FontMono" parent="Theme.ETelevizor">
+        <item name="android:fontFamily">monospace</item>
     </style>
 
     <style name="Theme.ETelevizor.Player" parent="Theme.ETelevizor">

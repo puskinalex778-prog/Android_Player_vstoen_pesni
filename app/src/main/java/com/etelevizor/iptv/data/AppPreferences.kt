@@ -41,10 +41,22 @@ class AppPreferences(context: Context) {
         get() = SortOrder.fromKey(prefs.getString("sort_order", SortOrder.PLAYLIST.key))
         set(v) = prefs.edit().putString("sort_order", v.key).apply()
 
-    /** Font scale multiplier: 0.85, 1.0, 1.15, 1.30 */
+    /** Font scale multiplier: 0.85, 1.0, 1.15, 1.30, 1.50, 1.70 */
     var fontScale: Float
-        get() = prefs.getFloat("font_scale", 1.0f)
+        get() = prefs.getFloat("font_scale", 1.05f)
         set(v) = prefs.edit().putFloat("font_scale", v).apply()
+
+    var fontStyle: FontStyle
+        get() = FontStyle.fromKey(prefs.getString("font_style", FontStyle.CLEAR_BOLD.key))
+        set(v) = prefs.edit().putString("font_style", v.key).apply()
+
+    var hidePlaylistUrls: Boolean
+        get() = prefs.getBoolean("hide_playlist_urls", false)
+        set(v) = prefs.edit().putBoolean("hide_playlist_urls", v).apply()
+
+    var showAllChannelsGroup: Boolean
+        get() = prefs.getBoolean("show_all_channels_group", true)
+        set(v) = prefs.edit().putBoolean("show_all_channels_group", v).apply()
 
     var showChannelNumbers: Boolean
         get() = prefs.getBoolean("show_channel_numbers", true)
@@ -178,6 +190,25 @@ class AppPreferences(context: Context) {
     var epgLastUpdated: Long
         get() = prefs.getLong("epg_last_updated", 0L)
         set(v) = prefs.edit().putLong("epg_last_updated", v).apply()
+
+    var loadEpgFromPlaylist: Boolean
+        get() = prefs.getBoolean("load_epg_from_playlist", true)
+        set(v) = prefs.edit().putBoolean("load_epg_from_playlist", v).apply()
+
+    /** Global fallback catchup type when not declared in M3U: "", "default", "shift", "flussonic", "flussonic-ts", "append", "xc" */
+    var globalCatchupType: String
+        get() = prefs.getString("global_catchup_type", "") ?: ""
+        set(v) = prefs.edit().putString("global_catchup_type", v).apply()
+
+    /** Global fallback archive depth in days (0 = Auto from playlist) */
+    var globalCatchupDays: Int
+        get() = prefs.getInt("global_catchup_days", 0)
+        set(v) = prefs.edit().putInt("global_catchup_days", v).apply()
+
+    /** Seek step in seconds for Archive, VOD, and Live Timeshift rewind/forward */
+    var seekStepSeconds: Int
+        get() = prefs.getInt("seek_step_seconds", 10)
+        set(v) = prefs.edit().putInt("seek_step_seconds", v.coerceIn(5, 120)).apply()
 
     // ==================== REMOTE CONTROL & GESTURES ====================
     /** channel, list, volume */

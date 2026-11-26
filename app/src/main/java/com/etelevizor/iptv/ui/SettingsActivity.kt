@@ -16,12 +16,30 @@ import com.etelevizor.iptv.model.*
 import com.etelevizor.iptv.util.DeviceModeHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import java.util.UUID
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val app get() = ETelevizorApp.instance
     private val prefs get() = app.prefs
+
+    private val epgFilePicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            Toast.makeText(this, "Загрузка EPG из файла...", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                val res = app.repository.importLocalEpgFile(uri)
+                res.onSuccess { count ->
+                    Toast.makeText(this@SettingsActivity, "Загружено передач из файла: $count", Toast.LENGTH_LONG).show()
+                    renderCategory(activeCategory)
+                }.onFailure { err ->
+                    Toast.makeText(this@SettingsActivity, "Ошибка: ${err.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     private val categories = listOf(
         "📺 Устройство и интерфейс",
@@ -224,21 +242,62 @@ class SettingsActivity : AppCompatActivity() {
             },
             SettingRow(
                 id = "font_scale",
-                title = "Размер шрифта",
+                title = "Размер текста (глобально по всей программе)",
+                subtitle = "Увеличивает шрифт меню, каналов, EPG и плеера для чтения с расстояния",
                 valueText = when {
-                    prefs.fontScale <= 0.9f -> "Мелкий (85%)"
-                    prefs.fontScale <= 1.05f -> "Обычный (100%)"
-                    prefs.fontScale <= 1.2f -> "Крупный (115%)"
-                    else -> "Очень крупный для ТВ (130%)"
+                    prefs.fontScale <= 0.90f -> "Мелкий (85%)"
+                    prefs.fontScale <= 1.08f -> "Обычный (100%)"
+                    prefs.fontScale <= 1.22f -> "Средний+ (115%)"
+                    prefs.fontScale <= 1.40f -> "Крупный — ТВ (130%)"
+                    prefs.fontScale <= 1.60f -> "Очень крупный — ТВ (150%)"
+                    else -> "Максимальный (170%)"
                 }
             ) {
-                val scales = floatArrayOf(0.85f, 1.0f, 1.15f, 1.30f)
-                val labels = listOf("Мелкий (85%)", "Обычный (100%)", "Крупный (115%)", "Очень крупный для ТВ (130%)")
+                val scales = floatArrayOf(0.85f, 1.0f, 1.15f, 1.30f, 1.50f, 1.70f)
+                val labels = listOf(
+                    "Мелкий (85%)",
+                    "Обычный (100%)",
+                    "Средний+ (115%)",
+                    "Крупный — для ТВ (130%)",
+                    "Очень крупный — для ТВ (150%)",
+                    "Максимальный — с большого расстояния (170%)"
+                )
                 val idx = scales.indices.minByOrNull { kotlin.math.abs(scales[it] - prefs.fontScale) } ?: 1
-                showSingleChoice("Размер шрифта", labels, idx) {
+                showSingleChoice("Размер текста", labels, idx) {
                     prefs.fontScale = scales[it]
-                    renderCategory(activeCategory)
+                    recreate()
                 }
+            },
+            SettingRow(
+                id = "font_style",
+                title = "Шрифт интерфейса",
+                subtitle = "Хорошо читаемый шрифт для телевизоров и смартфонов",
+                valueText = prefs.fontStyle.label
+            ) {
+                val items = FontStyle.entries
+                showSingleChoice("Шрифт интерфейса", items.map { it.label }, items.indexOf(prefs.fontStyle)) {
+                    prefs.fontStyle = items[it]
+                    recreate()
+                }
+            },
+            SettingRow(
+                id = "show_all_group",
+                title = "Показывать категорию «Все каналы»",
+                isSwitch = true,
+                isChecked = prefs.showAllChannelsGroup
+            ) {
+                prefs.showAllChannelsGroup = !prefs.showAllChannelsGroup
+                renderCategory(activeCategory)
+            },
+            SettingRow(
+                id = "hide_pl_urls",
+                title = "Скрывать ссылки у плейлистов",
+                subtitle = "Скрывает URL и логины в списке плейлистов (для приватности)",
+                isSwitch = true,
+                isChecked = prefs.hidePlaylistUrls
+            ) {
+                prefs.hidePlaylistUrls = !prefs.hidePlaylistUrls
+                renderCategory(activeCategory)
             },
             SettingRow(
                 id = "show_numbers",
@@ -359,6 +418,28 @@ class SettingsActivity : AppCompatActivity() {
                 }
             },
             SettingRow(
+                id = "free_search_pl",
+                title = "🌐 Поиск бесплатных плейлистов (РФ и Зарубежные)",
+                subtitle = "Открытые бесплатные ТВ-каналы России, СНГ, США, Европы и по жанрам"
+            ) {
+                Dialogs.showFreePlaylistsSearchDialog(this) { preset ->
+                    Toast.makeText(this, "Загрузка «${preset.title}»...", Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        val res = app.repository.addM3uUrlPlaylist(
+                            name = preset.title,
+                            url = preset.url,
+                            epgUrl = preset.recommendedEpgUrl
+                        )
+                        res.onSuccess { p ->
+                            Toast.makeText(this@SettingsActivity, "Добавлено: ${p.channelCount} каналов", Toast.LENGTH_LONG).show()
+                            renderCategory(activeCategory)
+                        }.onFailure { err ->
+                            Toast.makeText(this@SettingsActivity, "Ошибка: ${err.localizedMessage}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            },
+            SettingRow(
                 id = "add_demo_pl",
                 title = "Загрузить Демо-плейлист",
                 subtitle = "Открытые тестовые потоки HD + демо EPG для проверки"
@@ -394,12 +475,79 @@ class SettingsActivity : AppCompatActivity() {
                 }
             },
             SettingRow(
+                id = "epg_add_quick",
+                title = "+ Добавить телепрограмму (EPG)",
+                subtitle = "Вставить ссылку .xml/.xml.gz, выбрать готовый бесплатный EPG (РФ/Мир) или файл из памяти"
+            ) {
+                Dialogs.showEpgPresetsOrCustomDialog(
+                    context = this,
+                    onAddUrl = { name, url ->
+                        val list = prefs.getEpgSources().toMutableList()
+                        list.add(EpgSource(id = UUID.randomUUID().toString().take(10), name = name, url = url))
+                        prefs.saveEpgSources(list)
+                        Toast.makeText(this, "Источник EPG добавлен. Загрузка...", Toast.LENGTH_SHORT).show()
+                        lifecycleScope.launch {
+                            val res = app.repository.refreshAllEpg()
+                            res.onSuccess { n ->
+                                Toast.makeText(this@SettingsActivity, "EPG загружена: $n передач", Toast.LENGTH_LONG).show()
+                                renderCategory(activeCategory)
+                            }
+                        }
+                    },
+                    onPickLocalFile = { epgFilePicker.launch(arrayOf("*/*")) }
+                )
+            },
+            SettingRow(
                 id = "epg_sources",
-                title = "Источники EPG (XMLTV / .xml.gz)",
-                subtitle = "Добавить или удалить внешние ссылки телепрограммы",
+                title = "Источники EPG (управление списком)",
+                subtitle = "Просмотреть или удалить добавленные ссылки телепрограммы",
                 valueText = "${prefs.getEpgSources().size} шт."
             ) {
                 startActivity(Intent(this, PlaylistsActivity::class.java))
+            },
+            SettingRow(
+                id = "epg_from_pl",
+                title = "Загружать EPG из плейлиста автоматически",
+                subtitle = "Отключите, если хотите использовать только свой источник EPG вручную",
+                isSwitch = true,
+                isChecked = prefs.loadEpgFromPlaylist
+            ) {
+                prefs.loadEpgFromPlaylist = !prefs.loadEpgFromPlaylist
+                renderCategory(activeCategory)
+            },
+            SettingRow(
+                id = "global_catchup_type",
+                title = "Тип архива (Catch-up) по умолчанию",
+                subtitle = "Если архив не прописан в M3U, задайте тип сервера провайдера",
+                valueText = prefs.globalCatchupType.ifBlank { "Авто (из плейлиста)" }
+            ) {
+                val keys = listOf("", "default", "shift", "flussonic", "flussonic-ts", "append", "xc")
+                val labels = listOf(
+                    "Авто (из плейлиста)",
+                    "default (?utc=&lutc=)",
+                    "shift (сдвиг времени)",
+                    "flussonic (HLS архив)",
+                    "flussonic-ts (MPEG-TS архив)",
+                    "append (добавление к URL)",
+                    "xc (Xtream Codes архив)"
+                )
+                showSingleChoice("Тип архива по умолчанию", labels, keys.indexOf(prefs.globalCatchupType).coerceAtLeast(0)) {
+                    prefs.globalCatchupType = keys[it]
+                    renderCategory(activeCategory)
+                }
+            },
+            SettingRow(
+                id = "global_catchup_days",
+                title = "Глубина архива по умолчанию (дни)",
+                subtitle = "Позволяет включать архив и перемотку даже без тега catchup-days в плейлисте",
+                valueText = if (prefs.globalCatchupDays <= 0) "Авто" else "${prefs.globalCatchupDays} дн."
+            ) {
+                val vals = intArrayOf(0, 1, 3, 5, 7, 14)
+                val labels = listOf("Авто (из плейлиста)", "1 день", "3 дня", "5 дней", "7 дней", "14 дней")
+                showSingleChoice("Глубина архива по умолчанию", labels, vals.indexOf(prefs.globalCatchupDays).coerceAtLeast(0)) {
+                    prefs.globalCatchupDays = vals[it]
+                    renderCategory(activeCategory)
+                }
             },
             SettingRow(
                 id = "epg_shift",
@@ -653,16 +801,54 @@ class SettingsActivity : AppCompatActivity() {
     private fun buildRemoteAndGesturesSettings(): List<SettingRow> {
         return listOf(
             SettingRow(
+                id = "remote_preset",
+                title = "Готовая схема пульта ДУ",
+                subtitle = "Быстро переключить раскладку: Классическая или Как в Televizo",
+                valueText = if (prefs.remoteUpDownAction == "televizo") "Как в Televizo" else "Классическая"
+            ) {
+                val labels = listOf(
+                    "Классическая Е-Телевизёр (Вверх/Вниз=каналы, Влево=список, Вправо=EPG/Архив)",
+                    "Как в Televizo (Влево/Вправо=каналы, Вниз=список, Вверх=инфо, удерж. OK=меню/архив)"
+                )
+                val checked = if (prefs.remoteUpDownAction == "televizo") 1 else 0
+                showSingleChoice("Схема пульта ДУ", labels, checked) { which ->
+                    if (which == 1) {
+                        prefs.remoteUpDownAction = "televizo"
+                        prefs.remoteLeftAction = "channel_prev"
+                        prefs.remoteRightAction = "channel_next"
+                    } else {
+                        prefs.remoteUpDownAction = "channel"
+                        prefs.remoteLeftAction = "list"
+                        prefs.remoteRightAction = "epg"
+                    }
+                    renderCategory(activeCategory)
+                }
+            },
+            SettingRow(
+                id = "seek_step",
+                title = "Шаг перемотки (Архив / VOD / Таймшифт)",
+                subtitle = "На сколько секунд отматывать назад и вперёд кнопками ⏪ / ⏩ и стрелками",
+                valueText = "${prefs.seekStepSeconds} сек"
+            ) {
+                val vals = intArrayOf(5, 10, 15, 30, 60)
+                val labels = listOf("5 секунд", "10 секунд (Рекомендуется)", "15 секунд", "30 секунд", "60 секунд (1 мин)")
+                showSingleChoice("Шаг перемотки", labels, vals.indexOf(prefs.seekStepSeconds).coerceAtLeast(1)) {
+                    prefs.seekStepSeconds = vals[it]
+                    renderCategory(activeCategory)
+                }
+            },
+            SettingRow(
                 id = "rem_up_down",
                 title = "Пульт: кнопки Вверх / Вниз в плеере",
                 valueText = when (prefs.remoteUpDownAction) {
                     "list" -> "Список каналов"
                     "volume" -> "Громкость"
+                    "televizo" -> "Вверх=Инфо / Вниз=Каналы"
                     else -> "Переключать каналы"
                 }
             ) {
-                val keys = listOf("channel", "list", "volume")
-                val labels = listOf("Переключать каналы", "Открывать список каналов", "Регулировать громкость")
+                val keys = listOf("channel", "list", "volume", "televizo")
+                val labels = listOf("Переключать каналы", "Открывать список каналов", "Регулировать громкость", "Вверх=Инфо / Вниз=Список (Televizo)")
                 showSingleChoice("Кнопки Вверх / Вниз", labels, keys.indexOf(prefs.remoteUpDownAction).coerceAtLeast(0)) {
                     prefs.remoteUpDownAction = keys[it]
                     renderCategory(activeCategory)

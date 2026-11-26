@@ -13,7 +13,7 @@ import com.etelevizor.iptv.model.DeviceMode
 import com.etelevizor.iptv.util.DeviceModeHelper
 import kotlinx.coroutines.launch
 
-class SetupWizardActivity : AppCompatActivity() {
+class SetupWizardActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySetupWizardBinding
     private val app get() = ETelevizorApp.instance
@@ -106,6 +106,34 @@ class SetupWizardActivity : AppCompatActivity() {
 
         binding.btnWizardAddFile.setOnClickListener {
             filePickerLauncher.launch(arrayOf("*/*"))
+        }
+
+        binding.btnWizardFreeSearch.setOnClickListener {
+            Dialogs.showFreePlaylistsSearchDialog(this) { preset ->
+                setBusy(true)
+                lifecycleScope.launch {
+                    val res = app.repository.addM3uUrlPlaylist(
+                        name = preset.title,
+                        url = preset.url,
+                        epgUrl = preset.recommendedEpgUrl
+                    )
+                    setBusy(false)
+                    res.onSuccess { p ->
+                        Toast.makeText(
+                            this@SetupWizardActivity,
+                            "Подключено «${p.name}»: ${p.channelCount} каналов",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        finishWizard()
+                    }.onFailure { err ->
+                        Toast.makeText(
+                            this@SetupWizardActivity,
+                            "Ошибка загрузки: ${err.localizedMessage}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
         }
 
         binding.btnWizardDemo.setOnClickListener {

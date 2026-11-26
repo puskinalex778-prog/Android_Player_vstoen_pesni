@@ -375,6 +375,21 @@ class IptvRepository(
         }
     }
 
+    fun channelHasArchive(channel: Channel): Boolean {
+        if (channel.hasCatchup()) return true
+        if (prefs.globalCatchupDays > 0 || prefs.globalCatchupType.isNotBlank()) return true
+        val pl = getPlaylistById(channel.playlistId)
+        return (pl?.catchupDays ?: 0) > 0 || !pl?.catchupType.isNullOrBlank()
+    }
+
+    fun effectiveArchiveDays(channel: Channel): Int {
+        if (channel.catchupDays > 0) return channel.catchupDays
+        val plDays = getPlaylistById(channel.playlistId)?.catchupDays ?: 0
+        if (plDays > 0) return plDays
+        if (prefs.globalCatchupDays > 0) return prefs.globalCatchupDays
+        return if (channelHasArchive(channel)) 3 else 0
+    }
+
     // ==================== EPG MANAGEMENT ====================
     suspend fun refreshAllEpg(): Result<Int> = withContext(Dispatchers.IO) {
         try {
@@ -382,8 +397,10 @@ class IptvRepository(
             prefs.getEpgSources().filter { it.enabled && it.url.isNotBlank() }.forEach {
                 urls.add(it.url.trim() to prefs.epgTimeShiftHours)
             }
-            prefs.getPlaylists().filter { it.enabled && it.epgUrl.isNotBlank() }.forEach {
-                urls.add(it.epgUrl.trim() to (prefs.epgTimeShiftHours + it.epgShiftHours))
+            if (prefs.loadEpgFromPlaylist) {
+                prefs.getPlaylists().filter { it.enabled && it.epgUrl.isNotBlank() }.forEach {
+                    urls.add(it.epgUrl.trim() to (prefs.epgTimeShiftHours + it.epgShiftHours))
+                }
             }
 
             if (urls.isEmpty()) {
@@ -439,6 +456,24 @@ class IptvRepository(
         withContext(Dispatchers.IO) {
             epgDb.getSchedule(channel.epgLookupKeys(), fromMs, toMs)
         }
+
+    suspend fun importLocalEpgFile(uri: Uri): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val stream = context.contentResolver.openInputStream(uri)
+                ?: return@withContext Result.failure(IllegalStateException("Не удалось открыть файл EPG"))
+            val count = XmltvParser.parseAndStore(
+                rawStream = stream,
+                epgDb = epgDb,
+                timeShiftHours = prefs.epgTimeShiftHours,
+                keepPastDays = prefs.epgRetentionDays
+            )
+            epgNowNextCache.clear()
+            prefs.epgLastUpdated = System.currentTimeMillis()
+            Result.success(count)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     fun clearEpgCache() {
         epgDb.clearAll()

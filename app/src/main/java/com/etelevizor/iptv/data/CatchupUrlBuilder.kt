@@ -21,17 +21,45 @@ object CatchupUrlBuilder {
     fun buildCatchupUrl(
         channel: Channel,
         program: EpgProgram,
-        playlist: PlaylistSource?
+        playlist: PlaylistSource?,
+        globalFallbackType: String = ""
     ): String {
         val startSec = program.startTimeMs / 1000L
         val endSec = program.endTimeMs / 1000L
+        return buildForRange(channel, startSec, endSec, playlist, globalFallbackType)
+    }
+
+    /**
+     * Builds a timeshift URL starting at an arbitrary UTC timestamp (e.g. rewinding 10-60 sec from Live).
+     */
+    fun buildTimeshiftUrl(
+        channel: Channel,
+        targetStartSec: Long,
+        playlist: PlaylistSource?,
+        globalFallbackType: String = ""
+    ): String {
+        val nowSec = System.currentTimeMillis() / 1000L
+        val safeStart = targetStartSec.coerceAtMost(nowSec - 10L)
+        val endSec = safeStart + 3600L
+        return buildForRange(channel, safeStart, endSec, playlist, globalFallbackType)
+    }
+
+    private fun buildForRange(
+        channel: Channel,
+        startSec: Long,
+        endSec: Long,
+        playlist: PlaylistSource?,
+        globalFallbackType: String
+    ): String {
         val nowSec = System.currentTimeMillis() / 1000L
         val durationSec = (endSec - startSec).coerceAtLeast(60L)
         val durationMin = (durationSec / 60L).coerceAtLeast(1L)
         val offsetSec = (nowSec - startSec).coerceAtLeast(0L)
 
         val type = channel.catchupType.lowercase().ifBlank {
-            playlist?.catchupType?.lowercase().orEmpty()
+            playlist?.catchupType?.lowercase().orEmpty().ifBlank {
+                globalFallbackType.lowercase()
+            }
         }
 
         // Xtream Codes archive
@@ -40,7 +68,7 @@ object CatchupUrlBuilder {
             val sdf = SimpleDateFormat("yyyy-MM-dd:HH-mm", Locale.US).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }
-            val startStr = sdf.format(Date(program.startTimeMs))
+            val startStr = sdf.format(Date(startSec * 1000L))
             return "$server/timeshift/${playlist.xtreamUsername}/${playlist.xtreamPassword}/$durationMin/$startStr/${channel.streamId}.ts"
         }
 

@@ -356,6 +356,19 @@
                         android:textSize="13sp" />
 
                     <Button
+                        android:id="@+id/btnActionRewind"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_focus_button"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="⏪ -10с"
+                        android:textAllCaps="false"
+                        android:textColor="@color/accent_amber"
+                        android:textSize="13sp" />
+
+                    <Button
                         android:id="@+id/btnActionPlayPause"
                         android:layout_width="wrap_content"
                         android:layout_height="38dp"
@@ -367,6 +380,33 @@
                         android:textAllCaps="false"
                         android:textColor="@color/white"
                         android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnActionForward"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_focus_button"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="⏩ +10с"
+                        android:textAllCaps="false"
+                        android:textColor="@color/accent_amber"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnActionLiveNow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_badge_live"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="● В эфир"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
 
                     <Button
                         android:id="@+id/btnActionFavorite"
@@ -597,6 +637,38 @@
                 android:contentDescription="Закрыть"
                 android:src="@drawable/ic_close"
                 android:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Two Televizo-style Tabs: Прямой эфир / Архив -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnDrawerTabLive"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_focus_button"
+                android:text="Прямой эфир"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_emerald"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnDrawerTabArchive"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_focus_button"
+                android:text="↺ Архив"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_amber"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView

@@ -20,11 +20,29 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class PlaylistsActivity : AppCompatActivity() {
+class PlaylistsActivity : BaseActivity() {
 
     private lateinit var binding: ActivityPlaylistsBinding
     private val app get() = ETelevizorApp.instance
     private lateinit var adapter: PlaylistAdapter
+
+    private val epgFilePicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            setBusy(true)
+            lifecycleScope.launch {
+                val res = app.repository.importLocalEpgFile(uri)
+                setBusy(false)
+                res.onSuccess { count ->
+                    Toast.makeText(this@PlaylistsActivity, "EPG из файла загружена: $count передач", Toast.LENGTH_LONG).show()
+                    reloadLists()
+                }.onFailure { err ->
+                    Toast.makeText(this@PlaylistsActivity, "Ошибка EPG: ${err.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     private val filePicker = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -52,6 +70,7 @@ class PlaylistsActivity : AppCompatActivity() {
         binding.playlistsRoot.setBackgroundColor(app.prefs.appTheme.bgColor)
 
         adapter = PlaylistAdapter(
+            hideUrls = { app.prefs.hidePlaylistUrls },
             onRefresh = { refreshSingle(it) },
             onEdit = { editPlaylist(it) },
             onDelete = { confirmDelete(it) }
@@ -64,6 +83,7 @@ class PlaylistsActivity : AppCompatActivity() {
         binding.btnQuickM3uUrl.setOnClickListener { openAddM3uUrl() }
         binding.btnQuickXtream.setOnClickListener { openAddXtream() }
         binding.btnQuickM3uFile.setOnClickListener { filePicker.launch(arrayOf("*/*")) }
+        binding.btnQuickFreeSearch.setOnClickListener { openFreePlaylistFinder() }
         binding.btnQuickDemo.setOnClickListener { loadDemo() }
 
         binding.btnRefreshAllPlaylists.setOnClickListener {
@@ -81,13 +101,17 @@ class PlaylistsActivity : AppCompatActivity() {
         }
 
         binding.btnAddEpgSource.setOnClickListener {
-            Dialogs.showAddEpgSourceDialog(this) { name, url ->
-                val list = app.prefs.getEpgSources().toMutableList()
-                list.add(EpgSource(id = UUID.randomUUID().toString().take(10), name = name, url = url))
-                app.prefs.saveEpgSources(list)
-                reloadLists()
-                updateEpgNow()
-            }
+            Dialogs.showEpgPresetsOrCustomDialog(
+                context = this,
+                onAddUrl = { name, url ->
+                    val list = app.prefs.getEpgSources().toMutableList()
+                    list.add(EpgSource(id = UUID.randomUUID().toString().take(10), name = name, url = url))
+                    app.prefs.saveEpgSources(list)
+                    reloadLists()
+                    updateEpgNow()
+                },
+                onPickLocalFile = { epgFilePicker.launch(arrayOf("*/*")) }
+            )
         }
 
         binding.btnUpdateEpgNow.setOnClickListener { updateEpgNow() }
@@ -97,9 +121,10 @@ class PlaylistsActivity : AppCompatActivity() {
 
     private fun showAddTypeMenu() {
         val items = arrayOf(
-            "M3U / M3U8 по ссылке (URL)",
+            "По ссылке (M3U / M3U8 / XSPF / PLS / TXT)",
+            "Из памяти устройства (выбрать файл)",
             "Xtream Codes API (Логин / Пароль)",
-            "Локальный файл .m3u / .m3u8",
+            "🌐 Поиск бесплатных плейлистов (РФ и Мир)",
             "Загрузить Демо-плейлист"
         )
         MaterialAlertDialogBuilder(this)
@@ -107,12 +132,37 @@ class PlaylistsActivity : AppCompatActivity() {
             .setItems(items) { _, which ->
                 when (which) {
                     0 -> openAddM3uUrl()
-                    1 -> openAddXtream()
-                    2 -> filePicker.launch(arrayOf("*/*"))
-                    3 -> loadDemo()
+                    1 -> filePicker.launch(arrayOf("*/*"))
+                    2 -> openAddXtream()
+                    3 -> openFreePlaylistFinder()
+                    4 -> loadDemo()
                 }
             }
             .show()
+    }
+
+    private fun openFreePlaylistFinder() {
+        Dialogs.showFreePlaylistsSearchDialog(this) { preset ->
+            setBusy(true)
+            lifecycleScope.launch {
+                val res = app.repository.addM3uUrlPlaylist(
+                    name = preset.title,
+                    url = preset.url,
+                    epgUrl = preset.recommendedEpgUrl
+                )
+                setBusy(false)
+                res.onSuccess { p ->
+                    Toast.makeText(
+                        this@PlaylistsActivity,
+                        "Добавлено «${p.name}»: ${p.channelCount} ТВ каналов",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    reloadLists()
+                }.onFailure { err ->
+                    Toast.makeText(this@PlaylistsActivity, "Ошибка: ${err.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     private fun openAddM3uUrl() {

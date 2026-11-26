@@ -63,7 +63,6 @@ class ChannelAdapter(
 
     override fun onBindViewHolder(holder: ChannelVH, position: Int) {
         val channel = items[position]
-        val scale = prefs.fontScale
 
         holder.tvNumber.visibility = if (prefs.showChannelNumbers && channel.contentType == ContentType.LIVE) {
             View.VISIBLE
@@ -73,7 +72,6 @@ class ChannelAdapter(
         holder.tvNumber.text = channel.number.toString()
 
         holder.tvName.text = channel.name
-        holder.tvName.textSize = (if (viewStyle == ViewStyle.GRID) 13f else 15f) * scale
 
         if (prefs.showChannelLogos) {
             holder.ivLogo.visibility = View.VISIBLE
@@ -92,7 +90,7 @@ class ChannelAdapter(
 
         // Badges
         holder.tvFav.visibility = if (prefs.isFavorite(channel.id)) View.VISIBLE else View.GONE
-        holder.tvArchive.visibility = if (channel.hasCatchup()) View.VISIBLE else View.GONE
+        holder.tvArchive.visibility = if (repo.channelHasArchive(channel)) View.VISIBLE else View.GONE
         holder.tvLock.visibility = if (repo.isChannelLocked(channel)) View.VISIBLE else View.GONE
 
         // EPG or VOD metadata
@@ -237,13 +235,13 @@ class EpgProgramAdapter(
             p.isLive(now) -> {
                 holder.tvBadge.visibility = View.VISIBLE
                 holder.tvBadge.text = "● В ЭФИРЕ"
-                holder.tvBadge.setBackgroundResource(R.drawable.bg_badge_live)
+                holder.tvBadge.setBackgroundResource(R.drawable.bg_badge_green)
                 holder.itemView.isSelected = true
             }
             p.isPast(now) && hasArchive -> {
                 holder.tvBadge.visibility = View.VISIBLE
                 holder.tvBadge.text = "↺ АРХИВ"
-                holder.tvBadge.setBackgroundResource(R.drawable.bg_badge_archive)
+                holder.tvBadge.setBackgroundResource(R.drawable.bg_badge_orange)
                 holder.itemView.isSelected = false
             }
             else -> {
@@ -264,6 +262,7 @@ class EpgProgramAdapter(
 }
 
 class PlaylistAdapter(
+    private val hideUrls: () -> Boolean,
     private val onRefresh: (PlaylistSource) -> Unit,
     private val onEdit: (PlaylistSource) -> Unit,
     private val onDelete: (PlaylistSource) -> Unit
@@ -297,10 +296,14 @@ class PlaylistAdapter(
         if (p.lastUpdated > 0L) metaParts.add("Обн: ${DeviceModeHelper.formatDateTime(p.lastUpdated)}")
         holder.tvMeta.text = metaParts.joinToString(" • ")
 
-        holder.tvUrl.text = when (p.type) {
-            PlaylistType.M3U_URL -> p.url
-            PlaylistType.M3U_FILE -> p.localPath
-            PlaylistType.XTREAM -> "${p.xtreamServer} (${p.xtreamUsername})"
+        if (hideUrls()) {
+            holder.tvUrl.text = "•••••••• (ссылка скрыта в настройках)"
+        } else {
+            holder.tvUrl.text = when (p.type) {
+                PlaylistType.M3U_URL -> p.url
+                PlaylistType.M3U_FILE -> p.localPath
+                PlaylistType.XTREAM -> "${p.xtreamServer} (${p.xtreamUsername})"
+            }
         }
 
         holder.itemView.setOnClickListener { onEdit(p) }
