@@ -1,0 +1,82 @@
+name: Build E-Televizor Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Compile Android TV & Phone APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build Release APKs
+        run: gradle assembleRelease --stacktrace
+
+      - name: Prepare renamed APKs
+        run: |
+          mkdir -p dist
+          for apk in app/build/outputs/apk/release/*.apk; do
+            base=$(basename "$apk")
+            if [[ "$base" == *"universal"* ]]; then
+              cp "$apk" "dist/E-Televizor-universal.apk"
+            elif [[ "$base" == *"arm64-v8a"* ]]; then
+              cp "$apk" "dist/E-Televizor-arm64-v8a.apk"
+            elif [[ "$base" == *"armeabi-v7a"* ]]; then
+              cp "$apk" "dist/E-Televizor-armeabi-v7a.apk"
+            elif [[ "$base" == *"x86_64"* ]]; then
+              cp "$apk" "dist/E-Televizor-x86_64.apk"
+            fi
+          done
+          ls -lh dist/
+
+      - name: Upload APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: E-Televizor-APKs
+          path: dist/*.apk
+          retention-days: 30
+
+      - name: Publish GitHub Release with APKs
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-latest
+          name: "Е-Телевизёр v1.0.0 — IPTV плеер для Android TV и телефонов"
+          body: |
+            ### Е-Телевизёр v1.0.0 — IPTV плеер для Android TV и смартфонов
+
+            Полнофункциональный IPTV-плеер (аналог Televizo) с удобным управлением с пульта ДУ, поддержкой смартфонов и ТВ-приставок, двойным движком воспроизведения и десятками настроек.
+
+            **Основные возможности:**
+            - **Выбор режима ТВ / Телефон / Автоопределение** при первом запуске и в любой момент из меню.
+            - **Плейлисты**: M3U / M3U8 (URL и локальные файлы), **Xtream Codes API** (Live TV, Фильмы VOD, Сериалы с сезонами и эпизодами), несколько плейлистов одновременно, автообновление.
+            - **Телепрограмма (EPG) и Архив (Catch-up)**: XMLTV (`.xml` и `.xml.gz`), прогресс текущей передачи, просмотр архива (`default`, `flussonic`, `shift`, `append`, `xc`), смещение часового пояса.
+            - **Двойной движок плеера**: **Media3 ExoPlayer** (мгновенное переключение каналов) + **LibVLC** (AC3/DTS/UDP/RTMP/MPEG-2 и автофолбэк) + **Внешний плеер**.
+            - **Навигация с пульта ДУ**: D-Pad, быстрый набор номера канала `0–9`, настраиваемые кнопки пульта, быстрые выдвижные панели каналов и EPG поверх видео, возврат на предыдущий канал.
+            - **Настройки**: 8 разделов (Плейлисты, EPG, Плеер, Интерфейс и темы, Пульт и жесты, Родительский контроль с PIN, Таймер сна и автозапуск, Резервное копирование JSON и кэш).
+
+            **Какой APK скачать:**
+            - `E-Televizor-arm64-v8a.apk` — для современных смартфонов и 64-битных ТВ-приставок.
+            - `E-Televizor-armeabi-v7a.apk` — для 32-битных Android TV и бюджетных ТВ-приставок (Mi Box, старые ТВ).
+            - `E-Televizor-universal.apk` — универсальный APK для любых устройств Android.
+          files: dist/*.apk
+          make_latest: true
+          overwrite_files: true

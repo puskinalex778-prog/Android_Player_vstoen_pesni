@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Е-Телевизёр</string>
+    <string name="app_subtitle">IPTV плеер для Android TV и смартфонов</string>
+    <string name="mode_tv">Телевизор / Приставка (Пульт ДУ)</string>
+    <string name="mode_phone">Телефон / Планшет (Сенсор)</string>
+    <string name="mode_auto">Автоопределение</string>
+    <string name="live_badge">В ЭФИРЕ</string>
+    <string name="archive_badge">АРХИВ</string>
+    <string name="vod_badge">VOD</string>
+</resources>

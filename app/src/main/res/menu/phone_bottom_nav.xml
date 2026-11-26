@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/tab_live"
+        android:icon="@drawable/ic_tv"
+        android:title="Каналы" />
+    <item
+        android:id="@+id/tab_favorites"
+        android:icon="@drawable/ic_star"
+        android:title="Избранное" />
+    <item
+        android:id="@+id/tab_vod"
+        android:icon="@drawable/ic_movie"
+        android:title="Фильмы" />
+    <item
+        android:id="@+id/tab_series"
+        android:icon="@drawable/ic_series"
+        android:title="Сериалы" />
+    <item
+        android:id="@+id/tab_epg"
+        android:icon="@drawable/ic_epg"
+        android:title="EPG" />
+</menu>

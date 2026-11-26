@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvGroupChip"
+    android:layout_width="wrap_content"
+    android:layout_height="36dp"
+    android:layout_marginEnd="6dp"
+    android:background="@drawable/bg_focus_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:paddingHorizontal="14dp"
+    android:text="Все"
+    android:textColor="@color/text_primary"
+    android:textSize="13sp" />

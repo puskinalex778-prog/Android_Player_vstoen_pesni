@@ -1,0 +1,3 @@
+-keep class org.videolan.libvlc.** { *; }
+-keep class androidx.media3.** { *; }
+-keep class com.etelevizor.iptv.model.** { *; }
