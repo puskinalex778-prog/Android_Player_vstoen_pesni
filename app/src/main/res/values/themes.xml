@@ -20,8 +20,9 @@
         <item name="android:navigationBarColor">@color/black</item>
     </style>
 
-    <style name="ThemeOverlay.ETelevizor.Dialog" parent="ThemeOverlay.Material3.Dark.Dialog.Alert">
+    <style name="ThemeOverlay.ETelevizor.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
         <item name="colorPrimary">@color/accent_cyan</item>
     </style>
 </resources>
