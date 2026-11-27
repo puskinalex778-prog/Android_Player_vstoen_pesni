@@ -112,7 +112,7 @@ class FreePlaylistScanner(private val httpClient: OkHttpClient) {
                                 title = "$owner/$repo • $name",
                                 url = downloadUrl,
                                 sourceHost = "github.com/$owner/$repo",
-                                epgUrl = "https://iptvx.one/epg/epg_lite.xml.gz"
+                                epgUrl = FreePlaylistsCatalog.DEFAULT_AUTO_EPG_URL
                             )
                         )
                     }
